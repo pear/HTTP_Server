@@ -16,7 +16,7 @@ based on an array that the callbacks have to return.</description>
   </maintainers>
   <release>
     <version>0.3</version>
-    <date>2004-01-28</date>
+    <date>2004-01-29</date>
     <license>PHP License</license>
     <state>alpha</state>
     <notes>switched driver to Net_Server 0.10 or greater
@@ -37,10 +37,10 @@ improved example</notes>
     <provides type="function" name="HTTP_Server::GET" />
     <provides type="function" name="HTTP_Server::POST" />
     <filelist>
-      <file role="doc" baseinstalldir="HTTP" md5sum="ad14a32da663baff50b283308f4b83d6" name="examples/HTTP_Server_File.php"/>
+      <file role="doc" baseinstalldir="HTTP" md5sum="fb6abcd5ad5667de1bb593ef28cd562c" name="examples/HTTP_Server_File.php"/>
       <file role="doc" baseinstalldir="HTTP" md5sum="b0bfa6b72624cbed247143daea452a07" name="examples/www/index.html"/>
-      <file role="php" baseinstalldir="HTTP" md5sum="9a4710ef46b5e966d5b61b3bf3008965" name="Server/Request.php"/>
-      <file role="php" baseinstalldir="HTTP" md5sum="53117075021adb1405a15a65057e1a5c" name="Server.php"/>
+      <file role="php" baseinstalldir="HTTP" md5sum="34172f7ed406f3f5bfbddb9e031026dc" name="Server/Request.php"/>
+      <file role="php" baseinstalldir="HTTP" md5sum="414e8b403f93d0a6d14e399ec6d094a4" name="Server.php"/>
     </filelist>
   </release>
   <changelog>
@@ -68,7 +68,7 @@ response body may now be a resource instead of a string</notes>
     </release>
     <release>
       <version>0.3</version>
-      <date>2004-01-28</date>
+      <date>2004-01-29</date>
       <license>PHP License</license>
       <state>alpha</state>
       <notes>switched driver to Net_Server 0.10 or greater
