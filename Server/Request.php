@@ -74,12 +74,19 @@ class HTTP_Server_Request {
     * @var      array
     */
     var $headers    =   array();
+    
+    /**
+    *   the data (like POST) sent after the headers
+    *   @access public
+    *   @var    string
+    */
+    var $content    = '';
 
    /**
     * parse a http request
     *
     * @access    public
-	* @static
+    * @static
     * @param     string    $request    raw request data
     * @return    array     $request    parsed request
     */
@@ -106,12 +113,28 @@ class HTTP_Server_Request {
         }
     
         //    parse and store additional headers (not needed, but nice to have)
+        /**
+        * FIXME: 
+        *   HTTP1.1 allows headers be broken on several lines if the next line begins with
+        *   a space or a tab (rfc2616#2.2)
+        */
         for ($i = 1; $i < count($lines); $i++) {
+            if (trim($lines[$i]) == '') {
+                //empty line, after this the content should follow
+                $i++;
+                break;
+            }
             $regs    =    array();
             if (preg_match("'([^: ]+): (.+)'", $lines[$i], $regs)) {
                 $request->headers[(strtolower($regs[1]))]    =    $regs[2];
             }
         }
+        //aggregate the content (POST data or so)
+        $request->content = '';
+        for ($i = $i; $i < count($lines); $i++) {
+            $request->content .= $lines[$i] . "\r\n";
+        }
+        
         return    $request;
     }
 
@@ -155,6 +178,49 @@ class HTTP_Server_Request {
                       "path_info"    => $regs[1],
                       "query_string" => $regs[2]
                   );
+    }
+    
+    
+    
+    /**
+    *   Exports server variables based on request data
+    *   like _GET, _SERVER[HTTP_*] and so
+    *   The function can be used to make your own
+    *   HTTP server act more than a "real" one (like apache)
+    *
+    *   @access public
+    */
+    function export() 
+    {
+        //_SERVER[HTTP_*] from headers
+        foreach ($this->headers as $strId => $strValue) {
+            $_SERVER['HTTP_' . str_replace('-', '_', strtoupper($strId))] = $strValue;
+        }
+        
+        $nPos = strpos($this->headers['host'], ':');
+        if ($nPos !== false) {
+            $_SERVER['HTTP_HOST']   = substr( $this->headers['host'], 0, $nPos);
+            $_SERVER['SERVER_PORT'] = substr( $this->headers['host'], $nPos);
+        } else {
+            $_SERVER['SERVER_PORT'] = 80;
+        }
+        
+        $_SERVER['QUERY_STRING']    = $this->query_string;
+        $_SERVER['SERVER_PROTOCOL'] = $this->protocol;
+        $_SERVER['REQUEST_METHOD']  = $this->method;
+        $_SERVER['REQUEST_URI']     = $this->uri;
+        
+        //GET variables
+        parse_str($this->query_string, $_GET);
+        if (count($_GET) == 0) {
+            $_SERVER['argc'] = 0;
+            $_SERVER['argv'] = array();
+        } else {
+            $_SERVER['argc'] = 1;
+            $_SERVER['argv'] = array($this->query_string);
+        }
+        
+        //@todo: POST, COOKIE, FILES, SESSION,....
     }
 }
 ?>
