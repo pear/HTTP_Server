@@ -36,7 +36,7 @@
  * To create your own HTTP server, just extend this class
  * and implement the methods GET(), POST(), PUT() and DELETE()
  *
- * @version 0.3
+ * @version 0.4.0
  * @author  Stephan Schmidt <schst@php-tools.de>
  */
 
@@ -80,7 +80,7 @@ require_once HTTP_SERVER_INCLUDE_PATH . '/Request.php';
  * To create your own HTTP server, just extend this class
  * and implement the methods GET(), POST(), PUT() and DELETE()
  *
- * @version 0.3
+ * @version 0.4.0
  * @author  Stephan Schmidt <schst@php-tools.de>
  */
 class HTTP_Server
@@ -148,7 +148,7 @@ class HTTP_Server
     * @var array $_defaultResponseHeaders
     */
     var $_defaultResponseHeaders = array(
-                                            'Server'     => 'PEAR HTTP_Server/0.3',
+                                            'Server'     => 'PEAR HTTP_Server/0.4.0',
                                             'Connection' => 'close',
                                         );
 
