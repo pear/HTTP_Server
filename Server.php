@@ -201,6 +201,16 @@ class HTTP_Server
     {
         // parse request headers
         $request = &HTTP_Server_Request::parse($data);
+<<<<<<< Server.php
+
+        if (!is_array($request)) {
+            //bad request
+            $this->onBadRequest($clientId, $data);
+        } else {
+            $this->_serveRequest($clientId, $request);
+        }
+=======
+>>>>>>> 1.7
         
         if ($request === false) {
             $response = $this->handleBadRequest($clientId, $data);
@@ -265,7 +275,7 @@ class HTTP_Server
         $response["code_translated"] = $this->_resolveStatusCode($response["code"]);
 
         //  send the response code
-        $this->_driver->sendData($clientId, sprintf("HTTP/1.0 %s %s\n", $response["code"], $response["code_translated"]));
+        $this->_driver->sendData($clientId, sprintf("HTTP/1.0 %s %s\r\n", $response["code"], $response["code_translated"]));
 
         //  check for headers
         if (!isset($response["headers"]) || (!is_array($response["headers"])) ) {
@@ -288,13 +298,13 @@ class HTTP_Server
         
         //  send the headers
         foreach($response["headers"] as $header => $value) {
-                $this->_driver->sendData($clientId, sprintf("%s: %s\n", $header, $value));
+                $this->_driver->sendData($clientId, sprintf("%s: %s\r\n", $header, $value));
         }
 
         
         //  send the response body
         if (isset($response["body"])) {
-            $this->_driver->sendData($clientId, "\n");
+            $this->_driver->sendData($clientId, "\r\n");
             if (is_string($response["body"])) {
                 $this->_driver->sendData($clientId, $response["body"]);
             }
@@ -354,6 +364,24 @@ class HTTP_Server
     function POST($clientId, $headers)
     {
     }
+    
+    
+    
+    /**
+    *   a bad request has been made which doesn't conform to
+    *   the HTTP specs
+    *   overwrite this function to perform error handling
+    *
+    *   @param  int     The client id used
+    *   @param  string  The data sent
+    */
+    function onBadRequest($clientId, $data)
+    {
+        //just a simple dump
+        echo 'Bad request from client #' . $clientId . "\r\n";
+    }
+    
+    
 
    /**
     * Handler for invalid requests
