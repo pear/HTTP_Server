@@ -201,16 +201,6 @@ class HTTP_Server
     {
         // parse request headers
         $request = &HTTP_Server_Request::parse($data);
-<<<<<<< Server.php
-
-        if (!is_array($request)) {
-            //bad request
-            $this->onBadRequest($clientId, $data);
-        } else {
-            $this->_serveRequest($clientId, $request);
-        }
-=======
->>>>>>> 1.7
         
         if ($request === false) {
             $response = $this->handleBadRequest($clientId, $data);
@@ -364,24 +354,6 @@ class HTTP_Server
     function POST($clientId, $headers)
     {
     }
-    
-    
-    
-    /**
-    *   a bad request has been made which doesn't conform to
-    *   the HTTP specs
-    *   overwrite this function to perform error handling
-    *
-    *   @param  int     The client id used
-    *   @param  string  The data sent
-    */
-    function onBadRequest($clientId, $data)
-    {
-        //just a simple dump
-        echo 'Bad request from client #' . $clientId . "\r\n";
-    }
-    
-    
 
    /**
     * Handler for invalid requests
