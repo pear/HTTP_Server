@@ -203,10 +203,11 @@ class HTTP_Server
         $request = &HTTP_Server_Request::parse($data);
         
         if ($request === false) {
-        	
+            $response = $this->handleBadRequest($clientId, $data);
+            $this->_sendResponse($clientId, $response);
+        } else {
+            $this->_serveRequest($clientId, $request);
         }
-
-        $this->_serveRequest($clientId, $request);
         
         // close the connection
         $this->_driver->closeConnection($clientId);
@@ -227,7 +228,7 @@ class HTTP_Server
         } else {
             // no method for the request defined => Server error
             $response = array(
-                               "code" => 501
+                               'code' => 501
                              );
         }
         
@@ -242,6 +243,19 @@ class HTTP_Server
             $response["code"] = 500;
         }
 
+        return $this->_sendResponse($clientId, $response);
+    }
+
+   /**
+    * send the response
+    *
+    * @access   private
+    * @param    int     client id
+    * @param    array   response
+    * @return   boolean
+    */
+    function _sendResponse($clientId, $response)
+    {
         //  no status code => assume 200
         if (!isset($response["code"])) {
             $response["code"] = 200;
@@ -271,8 +285,8 @@ class HTTP_Server
                 $response["headers"]["Content-Length"] = strlen($response["body"]);
             }
         }
-
-        //  send the headers            
+        
+        //  send the headers
         foreach($response["headers"] as $header => $value) {
                 $this->_driver->sendData($clientId, sprintf("%s: %s\n", $header, $value));
         }
@@ -291,8 +305,8 @@ class HTTP_Server
                 }
                 fclose($response["body"]);
             }
-        }    
-        return true;
+        }
+        return true; 
     }
     
    /**
