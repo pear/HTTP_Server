@@ -175,14 +175,12 @@ class HTTP_Server_Request {
         }
 
         return array(
-                      "path_info"    => $regs[1],
-                      "query_string" => $regs[2]
+                      'path_info'    => $regs[1],
+                      'query_string' => isset($regs[2]) ? $regs[2] : null
                   );
     }
     
-    
-    
-    /**
+   /**
     *   Exports server variables based on request data
     *   like _GET, _SERVER[HTTP_*] and so
     *   The function can be used to make your own
