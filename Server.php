@@ -18,12 +18,31 @@
 //
 //    $Id$
 
-require_once 'PEAR.php';
+/**
+ * Can be changed in test environment
+ */
+if( !defined('HTTP_SERVER_INCLUDE_PATH') ) {
+    define( 'HTTP_SERVER_INCLUDE_PATH', 'HTTP/Server' );
+}
+
+/**
+ * uses Net_Server as driver
+ */
 require_once 'Net/Server.php';
+
+/**
+ * some HTTP utilities
+ */
 require_once 'HTTP.php';
 
 /**
+ * request class
+ */
+require_once HTTP_SERVER_INCLUDE_PATH . '/Request.php';
+
+/**
  * HTTP_Server
+ *
  * simple HTTP server class that analyses a request,
  * calls the appropriate request handler (get,post,..)
  * and sends a response
@@ -39,16 +58,16 @@ require_once 'HTTP.php';
  * To create your own HTTP server, just extend this class
  * and implement the methods GET(), POST(), PUT() and DELETE()
  *
- * @version 0.2b
+ * @version 0.3
  * @author  Stephan Schmidt <schst@php-tools.de>
  */
-class HTTP_Server extends Net_Server {
-
+class HTTP_Server
+{
    /**
-    * end character for socket_read
-    * @var    integer    $readEndCharacter
+    * driver
+    * @var object Net_Server_Driver
     */
-    var $readEndCharacter = "\r\n\r\n";
+    var $_driver;
 
    /**
     * list of HTTP status codes
@@ -107,10 +126,48 @@ class HTTP_Server extends Net_Server {
     * @var array $_defaultResponseHeaders
     */
     var $_defaultResponseHeaders = array(
-                                            'Server'     => 'PEAR HTTP_Server/0.2',
-                                            'Connection' => 'Close'
+                                            'Server'     => 'PEAR HTTP_Server/0.3',
+                                            'Connection' => 'close',
                                         );
 
+   /**
+	* constructor
+	*
+	* @access   public
+    * @param    string      hostname
+    * @param    integer     port
+    * @param    string      driver, see Net_Server documentation
+	*/
+    function HTTP_Server($hostname, $port, $driver = 'Fork')
+    {
+        $this->__construct( $hostname, $port, $driver );
+    }
+
+   /**
+	* constructor
+	*
+	* @access   public
+    * @param    string      hostname
+    * @param    integer     port
+    * @param    string      driver, see Net_Server documentation
+	*/
+    function __construct($hostname, $port, $driver = 'Fork')
+    {
+        $this->_driver = &Net_Server::create($driver, $host, $port);
+        $this->_driver->readEndCharacter  = "\r\n\r\n";
+        
+        $this->_driver->setCallbackObject($this);
+    }
+
+   /**
+    * start the server
+    *
+    * @access   public
+    */    
+    function start()
+    {
+        $this->_driver->start();
+    }
     
    /**
     * data was received, i.e. HTTP request sent
@@ -121,12 +178,12 @@ class HTTP_Server extends Net_Server {
     function onReceiveData($clientId, $data)
     {
         //    parse request headers
-        $request = $this->_parseRequest($data);
+        $request = &HTTP_Server_Request::parse($data);
 
-        $this->_serveRequest($clientId, $request);
+       $this->_serveRequest($clientId, $request);
         
         //    close the connection
-        $this->closeConnection($clientId);
+        $this->_driver->closeConnection($clientId);
     }
 
    /**
@@ -135,10 +192,12 @@ class HTTP_Server extends Net_Server {
     * @access private
     * @param  array $headers  request headers
     */
-    function _serveRequest($clientId, $headers)
+    function _serveRequest($clientId, $request)
     {
-        if (method_exists($this, $headers["method"])) {
-            $response = $this->$headers["method"]($clientId, $headers);
+        $method = $request->getMethod();
+    
+        if (method_exists($this, $method)) {
+            $response = $this->$method($clientId, $request);
         } else {
             // no method for the request defined => Server error
             $response = array(
@@ -167,7 +226,7 @@ class HTTP_Server extends Net_Server {
         $response["code_translated"] = $this->_resolveStatusCode($response["code"]);
 
         //  send the response code
-        $this->sendData($clientId, sprintf("HTTP/1.x %s %s\r\n", $response["code"], $response["code_translated"]));
+        $this->_driver->sendData($clientId, sprintf("HTTP/1.0 %s %s\n", $response["code"], $response["code_translated"]));
 
         //  check for headers
         if (!isset($response["headers"]) || (!is_array($response["headers"])) ) {
@@ -190,18 +249,20 @@ class HTTP_Server extends Net_Server {
 
         //  send the headers            
         foreach($response["headers"] as $header => $value) {
-                $this->sendData($clientId, sprintf("%s: %s\r\n", $header, $value));
+                $this->_driver->sendData($clientId, sprintf("%s: %s\n", $header, $value));
         }
 
+        
         //  send the response body
         if (isset($response["body"])) {
-            $this->sendData($clientId, "\r\n\r\n");
+            $this->_driver->sendData($clientId, "\n");
             if (is_string($response["body"])) {
-                $this->sendData($clientId, $response["body"]);
+                $this->_driver->sendData($clientId, $response["body"]);
             }
             elseif (is_resource($response["body"])) {
                 while (!feof($response["body"])) {
-                    $this->sendData($clientId, fread($response["body"], 4096));
+                    $data = fread($response["body"], 4096);
+                    $this->_driver->sendData($clientId, $data);
                 }
                 fclose($response["body"]);
             }
@@ -253,65 +314,6 @@ class HTTP_Server extends Net_Server {
     */
     function POST($clientId, $headers)
     {
-    }
-
-   /**
-    * parse a http request
-    *
-    * @access    public
-    * @param    string    $request    raw request data
-    * @return    array    $request    parsed request
-    */
-    function _parseRequest($request)
-    {
-        //    split lines
-        $request = explode ("\r\n", $request);
-
-        //    check for method, uri and protocol in line 1
-        $regs = array();
-        if (!preg_match("'([^ ]+) ([^ ]+) (HTTP/[^ ]+)'", $request[0], $regs))
-            return false;
-
-        $parsed = array(
-                         "method"   => $regs[1],
-                         "uri"      => $regs[2],
-                         "protocol" => $regs[3]
-                      );
-
-        //    parse the uri    
-        if ($tmp = $this->_parsePath($regs[2])) {
-            $parsed["path_info"]       = $tmp["path_info"];
-            $parsed["query_string"]    = $tmp["query_string"];
-        }
-    
-        //    parse and store additional headers (not needed, but nice to have)
-        for ($i = 1; $i < count($request); $i++) {
-            $regs    =    array();
-            if (preg_match("'([^: ]+): (.+)'", $request[$i], $regs)) {
-                $parsed[(strtolower($regs[1]))]    =    $regs[2];
-            }
-        }
-        return    $parsed;
-    }
-
-   /**
-    * parse a request uri
-    *
-    * @access    public
-    * @param    string    $path    uri to parse
-    * @return    array    $path    path data
-    */
-    function _parsePath($path)
-    {
-        $regs = array();
-        if (!preg_match("'([^?]*)(?:\?([^#]*))?(?:#.*)? *'", $path, $regs)) {
-            return false;
-        }
-
-        return array(
-                      "path_info"    => $regs[1],
-                      "query_string" => $regs[2]
-                  );
     }
 
    /**

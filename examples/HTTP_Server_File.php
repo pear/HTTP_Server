@@ -18,7 +18,9 @@
 //
 //    $Id$
 
-require_once 'HTTP/Server.php';
+define( 'HTTP_SERVER_INCLUDE_PATH', 'C:/www/projects/pear/HTTP_Server/Server' );
+
+require_once HTTP_SERVER_INCLUDE_PATH . '/../Server.php';
 
 class HTTP_Server_File extends HTTP_Server {
 
@@ -47,10 +49,13 @@ class HTTP_Server_File extends HTTP_Server {
     * @return mixed   $response   array containing the response or false if the method handles the response
     * @see    POST()
     */
-    function GET($clientId, $headers)
+    function GET($clientId, &$request)
     {
-        $path_translated = $this->documentRoot . $headers["path_info"];
+        $path_info       = $request->getPathInfo();
+        $path_translated = $this->documentRoot . $path_info;
 
+        $headers = array();
+        
         //  path does not exist
         if (!file_exists($path_translated)) {
             return array(
@@ -61,15 +66,13 @@ class HTTP_Server_File extends HTTP_Server {
         // path is a directory
         if (is_dir($path_translated)) {
             $body =  '<html>'.
-                     ' <head><title>Directory listing of '.$headers["path_info"].'</title></head>'.
+                     ' <head><title>Directory listing of ' . $path_info .'</title></head>'.
                      ' <body>'.
-                     '  <h1>Directory listing of '.$headers["path_info"].'</h1>'.
+                     '  <h1>Directory listing of '.$path_info.'</h1>'.
                      '  <hr />';
             $files = $this->_getFilesInDir($path_translated);
-            if ($headers["path_info"]=="/") {
-                $path_info = "/";
-            } else {
-                $path_info = $headers["path_info"]."/";
+            if ($path_info != "/") {
+                $path_info = $path_info."/";
             }
             foreach ($files as $file) {
                 $body .= sprintf("<a href=\"%s%s\">%s</a><br/>",$path_info,$file,$file);
@@ -79,7 +82,9 @@ class HTTP_Server_File extends HTTP_Server {
         }
         // path is a file
         elseif (is_readable($path_translated) ) {
-            $body = fopen($path_translated, "rb");
+            $fp = fopen($path_translated, "rb");
+            $body = fread( $fp, filesize( $path_translated ) );
+            fclose( $fp );
         }
         else
         {
@@ -87,10 +92,10 @@ class HTTP_Server_File extends HTTP_Server {
                             "code" => 403
                         );
         }
+
         return array(
                         "code"    => 200,
-                        "headers" => array(
-                                          ),
+                        "headers" => $headers,
                         "body"    => $body
                     );
     }
@@ -122,8 +127,8 @@ class HTTP_Server_File extends HTTP_Server {
 }
 
     //  instantiate the server
-    $myServer = new HTTP_Server_File('localhost',80);
-    $myServer->setDebugMode(false);
-    $myServer->documentRoot = "/var/www";
+    $myServer = &new HTTP_Server_File('localhost',80,'Sequential');
+    $myServer->_driver->setDebugMode(true);
+    $myServer->documentRoot = dirname( __FILE__ ) . '/www';
     $myServer->start();
 ?>
