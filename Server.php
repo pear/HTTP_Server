@@ -188,7 +188,7 @@ class HTTP_Server
     */    
     function start()
     {
-        $this->_driver->start();
+        return $this->_driver->start();
     }
     
    /**
