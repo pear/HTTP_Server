@@ -199,12 +199,16 @@ class HTTP_Server
     */
     function onReceiveData($clientId, $data)
     {
-        //    parse request headers
+        // parse request headers
         $request = &HTTP_Server_Request::parse($data);
-
-       $this->_serveRequest($clientId, $request);
         
-        //    close the connection
+        if ($request === false) {
+        	
+        }
+
+        $this->_serveRequest($clientId, $request);
+        
+        // close the connection
         $this->_driver->closeConnection($clientId);
     }
 
@@ -234,10 +238,9 @@ class HTTP_Server
 
         //  response is false, an error occured => send internal server error
         if ($response===false) {
-            $repsonse = array();
+            $response = array();
             $response["code"] = 500;
         }
-
 
         //  no status code => assume 200
         if (!isset($response["code"])) {
@@ -264,7 +267,7 @@ class HTTP_Server
         
         //  add the Content-Length Header
         if (isset($response["body"]) && is_string($response["body"])) {
-            if (!isset($respose["headers"]["Content-Length"])) {
+            if (!isset($response["headers"]["Content-Length"])) {
                 $response["headers"]["Content-Length"] = strlen($response["body"]);
             }
         }
@@ -336,6 +339,33 @@ class HTTP_Server
     */
     function POST($clientId, $headers)
     {
+    }
+
+   /**
+    * Handler for invalid requests
+    *
+    * Implement this in your class.
+    *
+    * this method should return an array of the following format:
+    *
+    * array(
+    *        "code"    => 200,
+    *        "headers" => array(
+    *                            "Content-Type" => "text/plain",
+    *                            "X-Powered-By" => "PEAR"
+    *                          ),
+    *        "body"    => "This is the actual response"
+    *      )
+    *
+    * @access   public
+    * @param    integer     client id
+    * @param    string      request data
+    */
+    function handleBadRequest($clientId, $data)
+    {
+        return array(
+                        'code' => 405
+                    );
     }
 
    /**

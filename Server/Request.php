@@ -97,10 +97,11 @@ class HTTP_Server_Request {
 
         //    check for method, uri and protocol in line 1
         $regs = array();
-        if (!preg_match("'([^ ]+) ([^ ]+) (HTTP/[^ ]+)'", $lines[0], $regs))
+        if (!preg_match("'([^ ]+) ([^ ]+) (HTTP/[^ ]+)'", $lines[0], $regs)) {
             return false;
+        }
 
-        $request = new HTTP_Server_Request();
+        $request = &new HTTP_Server_Request();
         
         $request->method   = $regs[1];
         $request->uri      = $regs[2];
@@ -135,7 +136,7 @@ class HTTP_Server_Request {
             $request->content .= $lines[$i] . "\r\n";
         }
         
-        return    $request;
+        return $request;
     }
 
    /**
