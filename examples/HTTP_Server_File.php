@@ -18,10 +18,27 @@
 //
 //    $Id$
 
-define( 'HTTP_SERVER_INCLUDE_PATH', 'C:/www/projects/pear/HTTP_Server/Server' );
+/**
+ * This is a basic example of how to use HTTP_Server to build
+ * a custom webserver.
+ * 
+ * @category    HTTP
+ * @package     HTTP_Server
+ * @subpackage  Examples
+ * @author      Stephan Schmidt <schst@php-tools.net>
+ */
 
-require_once HTTP_SERVER_INCLUDE_PATH . '/../Server.php';
+require_once 'HTTP/Server.php';
 
+/**
+ * This is a basic example of how to use HTTP_Server to build
+ * a custom webserver.
+ * 
+ * @category    HTTP
+ * @package     HTTP_Server
+ * @subpackage  Examples
+ * @author      Stephan Schmidt <schst@php-tools.net>
+ */
 class HTTP_Server_File extends HTTP_Server {
 
    /**
@@ -82,9 +99,7 @@ class HTTP_Server_File extends HTTP_Server {
         }
         // path is a file
         elseif (is_readable($path_translated) ) {
-            $fp = fopen($path_translated, "rb");
-            $body = fread( $fp, filesize( $path_translated ) );
-            fclose( $fp );
+            $body = fopen($path_translated, "rb");
         }
         else
         {
@@ -125,9 +140,14 @@ class HTTP_Server_File extends HTTP_Server {
         return $files;
     }
 }
-
     //  instantiate the server
-    $myServer = &new HTTP_Server_File('localhost',80,'Sequential');
+    $myServer = &new HTTP_Server_File('localhost',80);
+
+    /**
+     * use this on machines that do not have ext/pcntl compiled
+     */
+//    $myServer = &new HTTP_Server_File('localhost',80,'Sequential');
+
     $myServer->_driver->setDebugMode(true);
     $myServer->documentRoot = dirname( __FILE__ ) . '/www';
     $myServer->start();

@@ -19,6 +19,28 @@
 //    $Id$
 
 /**
+ * HTTP_Server
+ *
+ * simple HTTP server class that analyses a request,
+ * calls the appropriate request handler (get,post,..)
+ * and sends a response
+ *
+ * Request handler may be implemented by the developer
+ * and have to return an array with reponse code, headers
+ * and repsonse body
+ * 
+ * ever wanted your HTTP server to get content from a database
+ * or shared memory instead of files? Now it's possible, if you
+ * know a bit of PHP
+ *
+ * To create your own HTTP server, just extend this class
+ * and implement the methods GET(), POST(), PUT() and DELETE()
+ *
+ * @version 0.3
+ * @author  Stephan Schmidt <schst@php-tools.de>
+ */
+
+/**
  * Can be changed in test environment
  */
 if( !defined('HTTP_SERVER_INCLUDE_PATH') ) {
@@ -153,7 +175,7 @@ class HTTP_Server
 	*/
     function __construct($hostname, $port, $driver = 'Fork')
     {
-        $this->_driver = &Net_Server::create($driver, $host, $port);
+        $this->_driver = &Net_Server::create($driver, $hostname, $port);
         $this->_driver->readEndCharacter  = "\r\n\r\n";
         
         $this->_driver->setCallbackObject($this);
