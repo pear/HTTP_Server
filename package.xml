@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<package version="1.0">
+  <name>HTTP_Server</name>
+  <summary>HTTP server class.</summary>
+  <description>
+    HTTP server class that allows you to easily implement HTTP servers by supplying callbacks.
+    The base class will parse the request, call the appropriate callback and build a repsonse
+    based on an array that the callbacks have to return.
+  </description>
+  <maintainers>
+    <maintainer>
+      <user>schst</user>
+      <name>Stephan Schmidt</name>
+      <email>schst@php-tools.net</email>
+      <role>lead</role>
+    </maintainer>
+  </maintainers>
+  <release>
+    <version>0.2</version>
+    <date>2003-07-23</date>
+    <license>PHP</license>
+    <state>beta</state>
+    <notes>
+        removed bug in response,
+        added defaultResponseHeader
+        added Date header
+        response body may now be a resource instead of a string
+    </notes>
+    <deps>
+      <dep type="php" rel="ge" version="4.2"/>
+      <dep type="pkg" rel="has">HTTP</dep>
+      <dep type="pkg" rel="has">Net_Server</dep>
+    </deps>
+    <filelist>
+      <file role="php" baseinstalldir="HTTP" name="Server.php"/>
+      <dir name="examples" role="doc">
+          <file name="HTTP_Server_File.php"/>
+      </dir>
+    </filelist>
+  </release>
+  <changelog>
+    <release>
+        <version>0.1.1</version>
+        <date>2002-07-22</date>
+        <state>beta</state>
+        <notes>fixes a small bug with response headers</notes>
+    </release>
+    <release>
+        <version>0.1</version>
+        <date>2002-07-22</date>
+        <state>beta</state>
+        <notes>initial release</notes>
+    </release>
+  </changelog>
+</package>
