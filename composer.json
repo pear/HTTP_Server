@@ -13,7 +13,7 @@
     ],
     "autoload": {
         "psr-0": {
-            "HTTP_Server": "./"
+            "HTTP": "./"
         }
     },
     "description": "More info available on: http://pear.php.net/package/HTTP_Server",
@@ -28,7 +28,8 @@
     },
     "type": "library",
     "require": {
-        "pear/pear_exception": "*"
+        "pear/pear_exception": "*",
+        "pear/http": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "*"
